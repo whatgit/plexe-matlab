@@ -3,16 +3,19 @@ classdef traci
     
     properties
         connection
-        step_packet = [ 0;
-                        0;
-                        0;
-                        10;
-                        6;
-                        hex2dec('02');  %0x02 is the command for simulation step
-                        0;
-                        0;
-                        0;
-                        0;
+        update_speed
+        update_x
+        update_y
+        step_packet = [ 0
+                        0
+                        0
+                        10
+                        6
+                        hex2dec('02')  %0x02 is the command for simulation step
+                        0
+                        0
+                        0
+                        0
                         ]
     end
     
@@ -21,39 +24,25 @@ classdef traci
           obj.connection = tcpip(ipAddr, p, 'NetworkRole', role);
         end
         
-        function copy_packet = createSetSpeed(speed, lane, intention)
-            %Data format
-            size = 0;
-            cmd_size = 0;
-            CMD_SET_VEHICLE_VAR = hex2dec('C4');
-            VAR_SPEED = hex2dec('40');
-            TYPE_DOUBLE = hex2dec('0B');
-
-            copy_packet = [0;
-                           0;
-                           0;
-                           25;
-                           21;
-                           hex2dec('C4');
-                           hex2dec('40');
-                           0;
-                           hex2dec('0B');
-                           hex2dec('40');
-                           0;
-                           0;
-                           0;
-                           0;
-                           0;
-                           0;
-                           speed;
-                           0;
-                           0;
-                           0;
-                           lane;
-                           0;
-                           0;
-                           0;
-                           intention]
+        function send_vti_update(obj, name, x, y, speed)
+            nameVect = double(name); 
+            update_packet = [ 0;
+                          0;
+                          0;
+                          37;
+                          33;
+                          hex2dec('02');  %0x02 is the command for vti_vehicle_update
+                          fliplr(typecast(uint32(length(nameVect)),'uint8'))';
+%                           0;
+%                           0;
+%                           0;
+%                           length(nameVect);                     %4
+                          nameVect';                            %4
+                          fliplr(typecast(double(x),'uint8'))'; %8
+                          fliplr(typecast(double(y),'uint8'))'; %8
+                          fliplr(typecast(double(speed),'uint8'))'; %8
+                        ]
+            fwrite(obj.connection, update_packet);
         end
     end
     
