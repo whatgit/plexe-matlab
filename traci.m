@@ -3,19 +3,11 @@ classdef traci
     
     properties
         connection
-        update_speed
-        update_x
-        update_y
-        step_packet = [ 0
-                        0
-                        0
-                        10
-                        6
-                        hex2dec('02')  %0x02 is the command for simulation step
-                        0
-                        0
-                        0
-                        0
+        received_packet
+        step_packet = [ fliplr(typecast(uint32(10),'uint8'))';
+                        fliplr(typecast(uint8(6),'uint8'))';
+                        hex2dec('02')  %0x02 is the command for simulation step in SUMO
+                        fliplr(typecast(uint32(0),'uint8'))';
                         ]
     end
     
@@ -26,23 +18,20 @@ classdef traci
         
         function send_vti_update(obj, name, x, y, speed)
             nameVect = double(name); 
-            update_packet = [ 0;
-                          0;
-                          0;
-                          37;
-                          33;
-                          hex2dec('02');  %0x02 is the command for vti_vehicle_update
-                          fliplr(typecast(uint32(length(nameVect)),'uint8'))';
-%                           0;
-%                           0;
-%                           0;
-%                           length(nameVect);                     %4
-                          nameVect';                            %4
-                          fliplr(typecast(double(x),'uint8'))'; %8
-                          fliplr(typecast(double(y),'uint8'))'; %8
-                          fliplr(typecast(double(speed),'uint8'))'; %8
-                        ]
+            update_packet = [ fliplr(typecast(uint32(length(nameVect)+33),'uint8'))';
+                              fliplr(typecast(uint8(length(nameVect)+29),'uint8'))';
+                              hex2dec('02');  %0x02 is the command for vehicle_update in VTI
+                              fliplr(typecast(uint32(length(nameVect)),'uint8'))';
+                              nameVect';                            
+                              fliplr(typecast(double(x),'uint8'))'; 
+                              fliplr(typecast(double(y),'uint8'))'; 
+                              fliplr(typecast(double(speed),'uint8'))'; 
+                            ];
             fwrite(obj.connection, update_packet);
+        end
+        
+        function command = extract_command(obj)
+            command = obj.received_packet(6);
         end
     end
     
