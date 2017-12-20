@@ -33,6 +33,13 @@ classdef traci
         function command = extract_command(obj)
             command = obj.received_packet(6);
         end
+        
+        function [speed, acceleration] = extract_vti_value(obj)
+            speed_array = obj.received_packet(8:15)';
+            acceleration_array = obj.received_packet(17:24)';
+            speed = typecast(uint8(fliplr(speed_array)),'double');
+            acceleration = typecast(uint8(fliplr(acceleration_array)),'double');
+        end     
     end
     
 end
