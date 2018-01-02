@@ -8,13 +8,15 @@ role = 'client';
 t = traci(8813, '0.0.0.0', role);
 
 %connect
-fopen(t.connection)
+fopen(t.connection);
+fwrite(t.connection,t.step_packet)
 
 while 1
    if t.connection.BytesAvailable ~= 0
-       receive = fread(t.connection, t.connection.BytesAvailable)
+       t.received_packet = fread(t.connection, t.connection.BytesAvailable);
+       command = t.extract_command();
+       
+       t.subscribeToVehicleVariable('carOne')
+       fwrite(t.connection,t.step_packet)
    end
-   %send a message for stepping a simulation, use this if connects to SUMO
-   fwrite(t.connection,t.step_packet)
 end
-
